@@ -1,0 +1,45 @@
+services:
+  postgres-realworld:
+    image: postgres:17
+    environment:
+      - POSTGRES_DB=realworld
+      - POSTGRES_USER=realworld
+      - POSTGRES_PASSWORD=realworld_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - realworld-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U realworld -d realworld"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  realworld:
+    build: .
+    env_file:
+      - .env.local
+    environment:
+      - DB_HOST=postgres-realworld
+      - DB_PORT=5432
+    volumes:
+      - .:/app
+    ports:
+      - 8000:8000
+    networks:
+      - realworld-network
+    depends_on:
+      postgres-realworld:
+        condition: service_healthy
+    command: >
+      sh -c "uv run python manage.py migrate &&
+             uv run python manage.py runserver 0.0.0.0:8000"
+
+networks:
+  realworld-network:
+    external: true
+
+volumes:
+  postgres_data:
