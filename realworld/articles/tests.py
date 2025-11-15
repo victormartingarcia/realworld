@@ -14,19 +14,14 @@ User = get_user_model()
 class TestArticleModel(TestCase):
     @classmethod
     def setUpTestData(cls):
+        cls.author = User.objects.create(email='tester1@gmail.com', name='tester1', password='testpass')
 
-        cls.author = User.objects.create(
-            email="tester1@gmail.com", name="tester1", password="testpass"
-        )
-
-        cls.other_user = User.objects.create(
-            email="tester2@gmail.com", name="tester2", password="testpass"
-        )
+        cls.other_user = User.objects.create(email='tester2@gmail.com', name='tester2', password='testpass')
 
         cls.article = Article.objects.create(
-            title="test",
-            summary="test",
-            content="test",
+            title='test',
+            summary='test',
+            content='test',
             author=cls.author,
         )
 
@@ -68,7 +63,7 @@ class TestArticleModel(TestCase):
 
 
 class TestHomeView(TestCase):
-    url = reverse_lazy("home")
+    url = reverse_lazy('home')
 
     def test_get(self):
         response = self.client.get(self.url)
@@ -78,15 +73,14 @@ class TestHomeView(TestCase):
 class TestCreateArticleView(TestCase):
     @classmethod
     def setUpTestData(cls):
-
         cls.author = User(
-            email="tester@gmail.com",
-            name="tester",
+            email='tester@gmail.com',
+            name='tester',
         )
-        cls.author.set_password("testpass")
+        cls.author.set_password('testpass')
         cls.author.save()
 
-        cls.url = reverse("create_article")
+        cls.url = reverse('create_article')
 
     def setUp(self):
         self.client.force_login(self.author)
@@ -103,38 +97,37 @@ class TestCreateArticleView(TestCase):
         response = self.client.post(
             self.url,
             {
-                "title": "First Post",
-                "summary": "test",
-                "content": "test",
-                "tags": "python django html",
+                'title': 'First Post',
+                'summary': 'test',
+                'content': 'test',
+                'tags': 'python django html',
             },
         )
 
         article = Article.objects.get()
 
-        self.assertEqual(response.headers["HX-Redirect"], article.get_absolute_url())
+        self.assertEqual(response.headers['HX-Redirect'], article.get_absolute_url())
         self.assertEqual(article.author, self.author)
-        self.assertEqual(article.title, "First Post")
-        self.assertEqual(set(article.tags.names()), {"python", "django", "html"})
+        self.assertEqual(article.title, 'First Post')
+        self.assertEqual(set(article.tags.names()), {'python', 'django', 'html'})
 
 
 class TestArticleDetailView(TestCase):
-    password = "testpass"
+    password = 'testpass'
 
     @classmethod
     def setUpTestData(cls):
-
         cls.author = User(
-            email="tester@gmail.com",
-            name="tester",
+            email='tester@gmail.com',
+            name='tester',
         )
         cls.author.set_password(cls.password)
         cls.author.save()
 
         cls.article = Article.objects.create(
-            title="test",
-            summary="test",
-            content="test",
+            title='test',
+            summary='test',
+            content='test',
             author=cls.author,
         )
 
@@ -144,45 +137,44 @@ class TestArticleDetailView(TestCase):
         response = self.client.get(self.url)
 
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
-        self.assertEqual(response.context["article"], self.article)
-        self.assertNotIn("is_author", response.context)
+        self.assertEqual(response.context['article'], self.article)
+        self.assertNotIn('is_author', response.context)
 
     def test_get_is_author(self):
         self.client.force_login(self.author)
         response = self.client.get(self.url)
 
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
-        self.assertEqual(response.context["article"], self.article)
-        self.assertTrue(response.context["is_author"])
+        self.assertEqual(response.context['article'], self.article)
+        self.assertTrue(response.context['is_author'])
 
 
 class TestFavoriteView(TestCase):
-    password = "testpass"
+    password = 'testpass'
 
     @classmethod
     def setUpTestData(cls):
-
         cls.author = User(
-            email="tester1@gmail.com",
-            name="tester1",
+            email='tester1@gmail.com',
+            name='tester1',
         )
         cls.author.set_password(cls.password)
         cls.author.save()
 
         cls.other_user = User(
-            email="tester2@gmail.com",
-            name="tester2",
+            email='tester2@gmail.com',
+            name='tester2',
         )
         cls.other_user.set_password(cls.password)
         cls.other_user.save()
 
         cls.article = Article.objects.create(
-            title="test",
-            summary="test",
-            content="test",
+            title='test',
+            summary='test',
+            content='test',
             author=cls.author,
         )
-        cls.url = reverse("favorite", args=[cls.article.id])
+        cls.url = reverse('favorite', args=[cls.article.id])
 
     def test_add_favorite(self):
         self.client.force_login(self.other_user)
@@ -192,8 +184,8 @@ class TestFavoriteView(TestCase):
 
         self.assertTrue(self.article.favorites.filter(pk=self.other_user.id).exists())
 
-        self.assertTrue(response.context["is_favorite"])
-        self.assertTrue(response.context["is_detail"])
+        self.assertTrue(response.context['is_favorite'])
+        self.assertTrue(response.context['is_detail'])
 
     def test_same_user(self):
         self.client.force_login(self.author)
@@ -205,16 +197,14 @@ class TestFavoriteView(TestCase):
 
     def test_not_detail(self):
         self.client.force_login(self.other_user)
-        response = self.client.post(
-            self.url, HTTP_HX_TARGET=f"favorite-{self.article.id}"
-        )
+        response = self.client.post(self.url, HTTP_HX_TARGET=f'favorite-{self.article.id}')
 
         self.assertEqual(response.status_code, http.HTTPStatus.OK)
 
         self.assertTrue(self.article.favorites.filter(pk=self.other_user.id).exists())
 
-        self.assertTrue(response.context["is_favorite"])
-        self.assertFalse(response.context["is_detail"])
+        self.assertTrue(response.context['is_favorite'])
+        self.assertFalse(response.context['is_detail'])
 
     def test_remove_favorite(self):
         self.client.force_login(self.other_user)
@@ -227,25 +217,25 @@ class TestFavoriteView(TestCase):
 
         self.assertFalse(self.article.favorites.filter(pk=self.other_user.id).exists())
 
-        self.assertFalse(response.context["is_favorite"])
-        self.assertTrue(response.context["is_detail"])
+        self.assertFalse(response.context['is_favorite'])
+        self.assertTrue(response.context['is_detail'])
 
 
 class TestTagsAutocomplete(TestCase):
-    url = reverse_lazy("tags_autocomplete")
+    url = reverse_lazy('tags_autocomplete')
 
     @classmethod
     def setUpTestData(cls):
-        Tag.objects.create(name="Python")
+        Tag.objects.create(name='Python')
 
     def test_with_tags(self):
-        response = self.client.get(self.url, {"tags": "Python"})
-        self.assertEqual(len(response.context["tags"]), 1)
+        response = self.client.get(self.url, {'tags': 'Python'})
+        self.assertEqual(len(response.context['tags']), 1)
 
     def test_with_no_tags(self):
-        response = self.client.get(self.url, {"tags": "Django"})
-        self.assertEqual(len(response.context["tags"]), 0)
+        response = self.client.get(self.url, {'tags': 'Django'})
+        self.assertEqual(len(response.context['tags']), 0)
 
     def test_empty_query_string(self):
         response = self.client.get(self.url)
-        self.assertEqual(len(response.context["tags"]), 0)
+        self.assertEqual(len(response.context['tags']), 0)

@@ -17,13 +17,10 @@ User = get_user_model()
 
 class ArticleQuerySet(models.QuerySet):
     def with_favorites(self, user: AnonymousUser | User) -> models.QuerySet:
-
         return self.annotate(
-            num_favorites=models.Count("favorites"),
+            num_favorites=models.Count('favorites'),
             is_favorite=models.Exists(
-                get_user_model().objects.filter(
-                    pk=user.id, favorites=models.OuterRef("pk")
-                ),
+                get_user_model().objects.filter(pk=user.id, favorites=models.OuterRef('pk')),
             )
             if user.is_authenticated
             else models.Value(False, output_field=models.BooleanField()),
@@ -45,9 +42,7 @@ class Article(models.Model):
 
     tags: list[Tag] = TaggableManager(blank=True)
 
-    favorites: list[User] = models.ManyToManyField(
-        settings.AUTH_USER_MODEL, blank=True, related_name="favorites"
-    )
+    favorites: list[User] = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name='favorites')
 
     objects = ArticleManager()
 
@@ -60,12 +55,12 @@ class Article(models.Model):
 
     def get_absolute_url(self) -> str:
         return reverse(
-            "article_detail",
+            'article_detail',
             kwargs={
-                "article_id": self.id,
-                "slug": self.slug,
+                'article_id': self.id,
+                'slug': self.slug,
             },
         )
 
     def as_markdown(self) -> str:
-        return markdown.markdown(self.content, safe_mode="escape", extensions=["extra"])
+        return markdown.markdown(self.content, safe_mode='escape', extensions=['extra'])

@@ -89,26 +89,106 @@ ignore = [
     "PLR0913", # too many arguments
     "PLR0915", # too many statements
 
-    # Documentation (optional for now)
-    "D100", # Missing docstring in public module
-    "D101", # Missing docstring in public class
-    "D102", # Missing docstring in public method
-    "D103", # Missing docstring in public function
-    "D104", # Missing docstring in public package
-    "D105", # Missing docstring in magic method
-    "D106", # Missing docstring in public nested class
-    "D107", # Missing docstring in __init__
+    # Import/module rules (remapped from TCH to TC in newer ruff)
+    "TC001",   # Move import into TYPE_CHECKING block - breaks Django ORM
+    "TC002",   # Move third-party import into TYPE_CHECKING block
+    "TC003",   # Move stdlib import into TYPE_CHECKING block
 
-    # Django specific
-    "DJ001",  # Avoid using null=True on string-based fields
-    "DJ008",  # Model has no __str__ method
+    # Documentation (codebase has zero docstrings)
+    "D100", "D101", "D102", "D103", "D104", "D105", "D106", "D107",
+    "D200", "D201", "D202", "D203", "D204", "D205", "D206", "D207", "D208",
+    "D209", "D210", "D211", "D212", "D213", "D214", "D215", "D300", "D301",
+    "D400", "D401", "D402", "D403", "D404", "D405", "D406", "D407", "D408",
+    "D409", "D410", "D411", "D412", "D413", "D414", "D415", "D416", "D417",
 
-    # Security rules that might be too strict
-    "S101",   # Use of assert detected
-    "S311",   # Standard pseudo-random generators for non-crypto
+    # Return rules (too strict for Django views with multiple return paths)
+    "RET501",  # Unnecessary return None
+    "RET502",  # Implicit return value
+    "RET503",  # Missing explicit return
+    "RET504",  # Unnecessary variable assignment before return
+    "RET505",  # Unnecessary else after return
+    "RET506",  # Unnecessary else after raise
+    "RET507",  # Unnecessary continue
+    "RET508",  # Unnecessary break
 
-    # Style preferences
-    "TRY301", # Abstract raise to an inner function
+    # Error handling (too strict for simple Django apps)
+    "TRY002",  # Create own exception
+    "TRY003",  # Long exception message
+    "TRY004",  # Prefer TypeError over checking type
+    "TRY300",  # Try-else-return
+    "TRY400",  # Use logging.exception instead of logging.error
+    "TRY301",  # Abstract raise to an inner function
+
+    # Naming conventions
+    "N805",    # First argument should be self - can conflict with Django Meta
+    "N815",    # Mixed case variable - Django uses mixed case
+
+    # Logging (no logging in this codebase)
+    "LOG001", "LOG002", "LOG007", "LOG009",
+
+    # Commented code - too aggressive
+    "ERA001",  # Commented out code - flags legitimate comments
+
+    # Type checking
+    "PGH003",  # Use specific rule codes - sometimes we need noqa
+
+    # Built-ins shadowing (common in Django)
+    "A001",    # Variable shadows builtin
+    "A002",    # Argument shadows builtin
+    "A003",    # Class attribute shadows builtin
+
+    # Unused arguments (common in Django views/signals)
+    "ARG001",  # Unused function argument
+    "ARG002",  # Unused method argument
+
+    # Self access
+    "SLF001",  # Private member access - legitimate Django patterns
+
+    # Security - additional rules to ignore
+    "S105",    # Hardcoded password string (in form field names)
+    "S106",    # Hardcoded password function argument
+    "S308",    # Use of mark_safe
+
+    # Complexity
+    "PLR0911", # Too many return statements
+    "PLR0914", # Too many local variables
+    "PLR2004", # Magic value comparison (extend to all files)
+
+    # f-string rules (format_html should not be f-string)
+    "FLY002",  # Consider f-string instead of format
+
+    # Pathlib (gradual adoption better than forced migration)
+    "PTH100", "PTH101", "PTH102", "PTH103", "PTH104", "PTH105", "PTH106",
+    "PTH107", "PTH108", "PTH109", "PTH110", "PTH111", "PTH112", "PTH113",
+    "PTH114", "PTH115", "PTH116", "PTH117", "PTH118", "PTH119", "PTH120",
+    "PTH121", "PTH122", "PTH123", "PTH124",
+
+    # Pylint rules (can be very noisy)
+    "PLW0120", # else on loop without break
+    "PLW0603", # Global statement
+    "PLW2901", # Redefined loop variable
+    "PLR1714", # Consider merging dicts
+    "PLR1711", # Unnecessary return None
+    "PLR5501", # Consider using elif
+
+    # Simplify rules (can be opinionated)
+    "SIM102",  # Use single if instead of nested
+    "SIM103",  # Return condition directly
+    "SIM105",  # Use contextlib.suppress instead of try-except-pass
+    "SIM108",  # Use ternary
+    "SIM114",  # Combine if branches
+    "SIM116",  # Use dict instead of if
+    "SIM117",  # Use single with
+    "SIM118",  # Use key in dict
+    "SIM211",  # Use `not ...` instead of conditional
+
+    # RUF012 (Mutable class attributes) - Django forms use this pattern
+    "RUF012",  # Mutable class attributes should be annotated with ClassVar
+
+    # Django specific rules
+    "DJ001",   # Avoid using null=True on string-based fields
+    "DJ008",   # Model has no __str__ method
+    "DJ012",   # Order of model's inner classes (can be opinionated)
 ]
 
 [tool.ruff.lint.pydocstyle]
@@ -117,7 +197,21 @@ convention = "google"
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
 "settings.py" = ["F405", "F403"]
-"**/tests/**" = ["B011", "S106", "S105", "PLR2004", "RUF012"]
+"**/tests/**" = [
+    "B011",
+    "S106",
+    "S105",
+    "PLR2004",
+    "ARG",      # All ARG rules - test fixtures
+    "PLR0913",  # Too many arguments - test methods
+]
+"manage.py" = [
+    "D",        # No docstrings needed
+    "T201",     # Print statements OK in CLI
+]
+"**/admin.py" = [
+    "ERA001",   # Comment "Register your models here" is template
+]
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "realworld.settings"

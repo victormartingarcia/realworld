@@ -8,5 +8,5 @@ from .models import Article
 class ArticleForm(forms.ModelForm):
     class Meta:
         model = Article
-        fields = ["title", "summary", "content", "tags"]
-        widgets = {"summary": forms.TextInput()}
+        fields = ['title', 'summary', 'content', 'tags']
+        widgets = {'summary': forms.TextInput()}
