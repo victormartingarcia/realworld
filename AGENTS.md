@@ -2,9 +2,10 @@ This is a Django-based HTMX application that implements the RealWorld repository
 
 Tech Stack:
 - Backend: Python 3.11+ with Django 4.0.1
-- Frontend: HTMX + Alpine.js (minimal JavaScript)
+- Frontend: HTMX + Alpine.js (minimal JavaScript), Bootstrap 4 components
 - Database: PostgreSQL 17 (production) / SQLite (dev)
-- Infrastructure: Docker + docker-compose
+- Infrastructure: Docker + docker-compose - Server running locally on docker-compose with hot-reload
+- Code runs locally using uv. All python manage.py should be executed using uv run python manage.py <django management command>
 
 Key Patterns:
 - MTV (Model-Template-View) architecture
